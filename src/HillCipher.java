@@ -59,7 +59,7 @@ public class HillCipher {
         int r1 = blocksz;
         int r2 = blocksz;
         int c1 = blocksz;
-        int c2 = 1;
+        int c2 = vals[0].length;
         int[][] calc_vals = new int[blocksz][1];
         for(int i=0; i<r1; i++){
             for(int j=0; j<c2; j++){
@@ -73,8 +73,44 @@ public class HillCipher {
 
     // DECRYPT and its Helper Functions -----------------------------------------------------
     public void decrypt(){
-
+        int n = blocksz;
+        int d = determinant(keym, n);
+        System.out.println(d);
     }
+
+    public int determinant(int[][] arr, int n){
+        int d = 0;
+        int sign = 1;
+        if(n==1){
+            return arr[0][0];
+        }
+        int[][] cofac_arr = new int[n][n];
+        for(int i=0; i<n; i++){
+            cofactor(arr,cofac_arr,0,i,n);
+            d += sign * cofac_arr[0][i] * determinant(arr, n-1);
+            sign = -sign;
+        }
+        return d;
+    }
+
+    public void cofactor(int[][] arr, int[][] cofac_arr, int p, int q, int n){
+        int i=0, j=0;
+        for(int r=0; r<n; r++){
+            for(int c=0; c<n; c++){
+                if(r!=p && c!=q){
+                    cofac_arr[i][j++] = arr[r][c];
+                    if(j==(n-1)){
+                        j=0;
+                        i++;
+                    }
+                }
+            }
+        }
+    }
+
+    /*public int[][] transpose(){
+
+    }*/
 
 
     // MAIN ---------------------------------------------------------------------------------
