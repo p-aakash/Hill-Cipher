@@ -18,7 +18,6 @@ public class HillCipher {
     static String etext = "";
     static String dtext = "";
 
-
     // ENCRYPTION and its Helper Functions ---------------------------------------------------
     public void encrypt(){
         int n = blocksz;
@@ -33,7 +32,7 @@ public class HillCipher {
             int[][] num_s = new int[n][1];
             num_s = convertToMatrix(s);
             int[][] mul_num = new int[n][1];
-            mul_num = matrixMultiply(num_s);
+            mul_num = matrixMultiply(num_s,keym);
             for(int x=0; x<mul_num.length; x++){
                 for(int y=0; y<(1); y++){
                     int m = mul_num[x][y] % 26;
@@ -48,17 +47,16 @@ public class HillCipher {
         int[][] vals = new int[s.length()][1];
         for(int i=0; i<s.length(); i++){
             for(int j=0; j<1; j++){
-                //vals[i][j] = (int)(s.charAt(i));
                 vals[i][j] = ((int)(s.charAt(i)))%65;
             }
         }
         return vals;
     }
 
-    public int[][] matrixMultiply(int[][] vals){
-        int r1 = blocksz;
-        int r2 = blocksz;
-        int c1 = blocksz;
+    public int[][] matrixMultiply(int[][] vals, int[][]keym){
+        int r1 = keym.length;
+        int r2 = vals.length;
+        int c1 = keym[0].length;
         int c2 = vals[0].length;
         int[][] calc_vals = new int[blocksz][1];
         for(int i=0; i<r1; i++){
@@ -78,6 +76,17 @@ public class HillCipher {
         if((d%26)==0){
             return false;
         }
+        int[][] cofac_arr = new int[n][n];
+        cofac_arr = cofactor(keym, n);
+        int[][] inverse_arr = new int[n][n];
+        inverse_arr = transpose(keym, n);
+        /*for(int i=0; i<inverse_arr.length; i++){
+            System.out.print("{");
+            for(int j=0; j<inverse_arr[0].length; j++){
+                System.out.print(inverse_arr[i][j]+",");
+            }
+            System.out.print("}\n");
+        }*/
         return true;
     }
 
@@ -111,25 +120,77 @@ public class HillCipher {
         return d;
     }
 
-    public void cofactor(int[][] arr, int[][] cofac_arr, int p, int q, int n){
-        int i=0, j=0;
-        for(int r=0; r<n; r++){
-            for(int c=0; c<n; c++){
-                if(r!=p && c!=q){
-                    cofac_arr[i][j++] = arr[r][c];
-                    if(j==(n-1)){
-                        j=0;
-                        i++;
+    public int[][] cofactor(int[][] arr, int n){
+        int[][] t_arr = new int[n][n];
+        int[][] cofac_arr = new int[n][n];
+        int r=0, c=0;
+        for(int k=0; k<n; k++){
+            for(int l=0; l<n; l++){
+                r=0;
+                c=0;
+                for(int i=0; i<n; i++){
+                    for(int j=0; j<n; j++){
+                        t_arr[i][j] = 0;
+                        if(i!=k && j!=l){
+                            t_arr[r][c] = arr[i][j];
+                            if(c < (n-2)){
+                                c++;
+                            }
+                            else{
+                                c=0;
+                                r++;
+                            }
+                        }
                     }
                 }
+                cofac_arr[k][l] = (int)(Math.pow(-1,k+l) * determinant(t_arr,(n-1)));
             }
         }
+        return cofac_arr;
     }
 
-    /*public int[][] transpose(){
+    public int[][] transpose(int[][] arr, int n){
+        int[][] inv_arr = new int[n][n];
+        int[][] t_arr = new int[n][n];
+        int d = determinant(arr, n);
+        int m = mod_it(d%26);
+        m = m%26;
+        if(m<0){
+            m += 26;
+        }
+        for(int i=0; i<n; i++){
+            for(int j=0; j<n; j++){
+                t_arr[i][j] = arr[j][i];
+            }
+        }
+        for(int i=0; i<n; i++){
+            for(int j=0; j<n; j++){
+                inv_arr[i][j] = t_arr[i][j]%26;
+                if(inv_arr[i][j] < 0){
+                    inv_arr[i][j] += 26;
+                }
+                inv_arr[i][j] *= m;
+                inv_arr[i][j] = inv_arr[i][j]%26;
+            }
+        }
+        return inv_arr;
+    }
 
-    }*/
-
+    public int mod_it(int d){
+        int r, t, q;
+        int r1=26, r2=d;
+        int t1=0, t2=1;
+        while(r1!=1 && r2!=0){
+            q = r1/r2;
+            r = r1%r2;
+            t = t1-(t2 * q);
+            r1 = r2;
+            r2 = r;
+            t1 = t2;
+            t2 = t;
+        }
+        return (t1+t2);
+    }
 
     // MAIN ---------------------------------------------------------------------------------
     public static void main(String args[]){
