@@ -17,6 +17,7 @@ public class HillCipher {
     static int[][] keym;
     static String etext = "";
     static String dtext = "";
+    static int[][] inv_key;
 
     // ENCRYPTION and its Helper Functions ---------------------------------------------------
     public void encrypt(){
@@ -73,20 +74,33 @@ public class HillCipher {
     public boolean decrypt(){
         int n = blocksz;
         int d = determinant(keym, n);
-        if((d%26)==0){
+        if((d%26)==0 || ((d%2)==0) || ((d%13)==0)){
             return false;
         }
         int[][] cofac_arr = new int[n][n];
         cofac_arr = cofactor(keym, n);
-        int[][] inverse_arr = new int[n][n];
-        inverse_arr = transpose(keym, n);
-        /*for(int i=0; i<inverse_arr.length; i++){
-            System.out.print("{");
-            for(int j=0; j<inverse_arr[0].length; j++){
-                System.out.print(inverse_arr[i][j]+",");
+        inv_key = new int[n][n];
+        inv_key = transpose(cofac_arr, n);
+        for(int i=0; i<(ciphert.length()/n); i++){
+            String c;
+            if(i==((ciphert.length()/n)-1)){
+                c = ciphert.substring(i*n);
             }
-            System.out.print("}\n");
-        }*/
+            else{
+                c = ciphert.substring(i*n,((i*n)+n));
+            }
+            int[][] num_c = new int[n][1];
+            num_c = convertToMatrix(c);
+            int[][] mul_num = new int[n][1];
+            mul_num = matrixMultiply(num_c,inv_key);
+            for(int x=0; x<mul_num.length; x++){
+                for(int y=0; y<(1); y++){
+                    int m = mul_num[x][y] % 26;
+                    char ch = (char)(m+65);
+                    dtext += ch;
+                }
+            }
+        }
         return true;
     }
 
@@ -237,10 +251,18 @@ public class HillCipher {
             boolean rtn = hc.decrypt();
             // OUT
             if(rtn==true){
+                System.out.println("\nInverse Key Matrix is:");
+                for(int i=0; i<inv_key.length; i++){
+                    for(int j=0; j<inv_key[0].length; j++){
+                        System.out.print(inv_key[i][j]+" ");
+                    }
+                    System.out.print("\n");
+                }
                 System.out.println("\nDecrypted Text is:");
                 System.out.println(dtext);
             }
             else{
+                System.out.println("\nKey Matrix is not invertible mod 26. Exiting Program.");
                 in.close();
                 return;
             }
