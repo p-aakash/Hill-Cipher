@@ -11,34 +11,36 @@ public class HillCipher {
     // Variable Initializations
     static int DEBUG = 0;
     static int chosen_option;
-    static String message;
-    static String ciphert;
+    static String plaintext = "";
+    static String ciphertext = "";
     static int blocksz;
     static int[][] keym;
-    static String etext = "";
-    static String dtext = "";
     static int[][] inv_key;
 
     // ENCRYPTION and its Helper Functions ---------------------------------------------------
     public void encrypt(){
         int n = blocksz;
-        for(int i=0; i<(message.length()/n); i++){
+        // Divide the Plaintext into equal n parts and apply calculations
+        for(int i=0; i<(plaintext.length()/n); i++){
             String s;
-            if(i==((message.length()/n)-1)){
-                s = message.substring(i*n);
+            if(i==((plaintext.length()/n)-1)){
+                s = plaintext.substring(i*n);
             }
             else{
-                s = message.substring(i*n,((i*n)+n));
+                s = plaintext.substring(i*n,((i*n)+n));
             }
+            // Convert the column of Plaintext to Numerical Matrix (A to Z translates to 0 to 25)
             int[][] num_s = new int[n][1];
             num_s = convertToMatrix(s);
+            // Multiply the Plaintext Matrix with the Key Matrix
             int[][] mul_num = new int[n][1];
             mul_num = matrixMultiply(num_s,keym);
+            // Mod 26 and then format to get the right alphabet number for the Cipher-text
             for(int x=0; x<mul_num.length; x++){
                 for(int y=0; y<(1); y++){
                     int m = mul_num[x][y] % 26;
                     char c = (char)(m+65);
-                    etext += c;
+                    ciphertext += c;
                 }
             }
         }
@@ -73,31 +75,39 @@ public class HillCipher {
     // DECRYPTION and its Helper Functions -----------------------------------------------------
     public boolean decrypt(){
         int n = blocksz;
+        // Calculate the determinant for the Key Matrix
         int d = determinant(keym, n);
+        // Check if determinant is mod 26
         if((d%26)==0 || ((d%2)==0) || ((d%13)==0)){
             return false;
         }
+        // If it is not, Co-factor the Key Matrix
         int[][] cofac_arr = new int[n][n];
         cofac_arr = cofactor(keym, n);
+        // Find the Inverse Matrix of the Co-Factored Key Matrix
         inv_key = new int[n][n];
         inv_key = transpose(cofac_arr, n);
-        for(int i=0; i<(ciphert.length()/n); i++){
+        // Divide the Cipher-text into equal n parts and apply the calculations
+        for(int i=0; i<(ciphertext.length()/n); i++){
             String c;
-            if(i==((ciphert.length()/n)-1)){
-                c = ciphert.substring(i*n);
+            if(i==((ciphertext.length()/n)-1)){
+                c = ciphertext.substring(i*n);
             }
             else{
-                c = ciphert.substring(i*n,((i*n)+n));
+                c = ciphertext.substring(i*n,((i*n)+n));
             }
+            // Convert the column of Cipher-text to Numerical Matrix (A to Z translates to 0 to 25)
             int[][] num_c = new int[n][1];
             num_c = convertToMatrix(c);
+            // Multiply the Cipher-text Matrix with the Inverse Matrix
             int[][] mul_num = new int[n][1];
             mul_num = matrixMultiply(num_c,inv_key);
+            // Mod 26 and then format to get the right alphabet number for the Plaintext
             for(int x=0; x<mul_num.length; x++){
                 for(int y=0; y<(1); y++){
                     int m = mul_num[x][y] % 26;
                     char ch = (char)(m+65);
-                    dtext += ch;
+                    plaintext += ch;
                 }
             }
         }
@@ -216,12 +226,12 @@ public class HillCipher {
         if(chosen_option==1){
             // Get PLAIN-TEXT
             System.out.println("\nEnter plain-text:");
-            message = in.next();
+            plaintext = in.next();
         }
         else if(chosen_option==2){
             // Get CIPHER-TEXT
             System.out.println("\nEnter cipher-text:");
-            ciphert = in.next();
+            ciphertext = in.next();
         }
         // Read Block Size
         System.out.println("\nEnter block size of matrix:");
@@ -236,15 +246,15 @@ public class HillCipher {
         }
         if(chosen_option==1){
             // Let's ENCRYPT
-            if(message.length()%blocksz != 0){
-                while(message.length()%blocksz !=0 ){
-                    message = message+"X";
+            if(plaintext.length()%blocksz != 0){
+                while(plaintext.length()%blocksz !=0 ){
+                    plaintext = plaintext+"X";
                 }
             }
             hc.encrypt();
             // OUT
             System.out.println("\nEncrypted Text is:");
-            System.out.println(etext);
+            System.out.println(ciphertext);
         }
         else if(chosen_option==2){
             // Let's DECRYPT
@@ -259,7 +269,7 @@ public class HillCipher {
                     System.out.print("\n");
                 }
                 System.out.println("\nDecrypted Text is:");
-                System.out.println(dtext);
+                System.out.println(plaintext);
             }
             else{
                 System.out.println("\nKey Matrix is not invertible mod 26. Exiting Program.");
