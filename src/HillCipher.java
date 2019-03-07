@@ -220,7 +220,6 @@ public class HillCipher {
     public static void main(String args[]){
         HillCipher hc = new HillCipher();
         Scanner in = new Scanner(System.in);
-        System.out.println("PROGRAM OUTPUT SPECIFICATION FOR VALID KEY\n");
         System.out.println("Enter 1 to ENCRYPT or 2 to DECRYPT: ");
         chosen_option = in.nextInt();
         if(chosen_option==1){
