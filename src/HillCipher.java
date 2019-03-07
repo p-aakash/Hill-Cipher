@@ -19,7 +19,7 @@ public class HillCipher {
     static String dtext = "";
 
 
-    // ENCRYPT and its Helper Functions ---------------------------------------------------
+    // ENCRYPTION and its Helper Functions ---------------------------------------------------
     public void encrypt(){
         int n = blocksz;
         for(int i=0; i<(message.length()/n); i++){
@@ -71,11 +71,14 @@ public class HillCipher {
         return calc_vals;
     }
 
-    // DECRYPT and its Helper Functions -----------------------------------------------------
-    public void decrypt(){
+    // DECRYPTION and its Helper Functions -----------------------------------------------------
+    public boolean decrypt(){
         int n = blocksz;
         int d = determinant(keym, n);
-        System.out.println(d);
+        if((d%26)==0){
+            return false;
+        }
+        return true;
     }
 
     public int determinant(int[][] arr, int n){
@@ -84,11 +87,26 @@ public class HillCipher {
         if(n==1){
             return arr[0][0];
         }
-        int[][] cofac_arr = new int[n][n];
-        for(int i=0; i<n; i++){
-            cofactor(arr,cofac_arr,0,i,n);
-            d += sign * cofac_arr[0][i] * determinant(arr, n-1);
-            sign = -sign;
+        else{
+            int[][] t_arr = new int[n-1][n-1];
+            int p=0, q=0;
+            for(int i=0; i<n; i++){
+                p=0;
+                q=0;
+                for(int j=1; j<n; j++){
+                    for(int k=0; k<n; k++){
+                        if(k!=i){
+                            t_arr[p][q++] = arr[j][k];
+                            if(q%(n-1)==0){
+                                p++;
+                                q=0;
+                            }
+                        }
+                    }
+                }
+                d += arr[0][i] * determinant(t_arr,n-1) * sign;
+                sign = -sign;
+            }
         }
         return d;
     }
@@ -155,14 +173,18 @@ public class HillCipher {
         }
         else if(chosen_option==2){
             // Let's DECRYPT
-            hc.decrypt();
-            // Inverse Matrix
-
+            boolean rtn = hc.decrypt();
             // OUT
-            System.out.println("\nDecrypted Text is:");
-            System.out.println(dtext);
+            if(rtn==true){
+                System.out.println("\nDecrypted Text is:");
+                System.out.println(dtext);
+            }
+            else{
+                in.close();
+                return;
+            }
         }
-
+        // DEBUG
         if(DEBUG==1){
             System.out.println("\nInserted Matrix:\n");
             for(int i=0; i<blocksz; i++){
@@ -176,7 +198,7 @@ public class HillCipher {
                 System.out.print("]\n");
             }
         }
-
         in.close();
+        return;
     }
 }
